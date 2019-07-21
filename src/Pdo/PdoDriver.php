@@ -78,6 +78,7 @@ abstract class PdoDriver extends DatabaseDriver
 		$options['port']          = isset($options['port']) ? (int) $options['port'] : null;
 		$options['password']      = $options['password'] ?? '';
 		$options['driverOptions'] = $options['driverOptions'] ?? [];
+		$options['persistent']    = isset($options['persistent']) ? $options['persistent'] : false;
 
 		// Finalize initialisation
 		parent::__construct($options);
@@ -286,6 +287,12 @@ abstract class PdoDriver extends DatabaseDriver
 
 		// Create the connection string:
 		$connectionString = str_replace($replace, $with, $format);
+
+		// Persistent connections.
+		if ($this->options['persistent'] === true)
+		{
+			$this->options['driverOptions'][\PDO::ATTR_PERSISTENT] = true;
+		}
 
 		try
 		{
