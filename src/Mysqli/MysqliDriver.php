@@ -115,15 +115,16 @@ class MysqliDriver extends DatabaseDriver implements UTF8MB4SupportInterface
 		];
 
 		// Get some basic values from the options.
-		$options['host']     = $options['host'] ?? 'localhost';
-		$options['user']     = $options['user'] ?? 'root';
-		$options['password'] = $options['password'] ?? '';
-		$options['database'] = $options['database'] ?? '';
-		$options['select']   = isset($options['select']) ? (bool) $options['select'] : true;
-		$options['port']     = isset($options['port']) ? (int) $options['port'] : null;
-		$options['socket']   = $options['socket'] ?? null;
-		$options['utf8mb4']  = isset($options['utf8mb4']) ? (bool) $options['utf8mb4'] : false;
-		$options['sqlModes'] = isset($options['sqlModes']) ? (array) $options['sqlModes'] : $sqlModes;
+		$options['host']       = $options['host'] ?? 'localhost';
+		$options['user']       = $options['user'] ?? 'root';
+		$options['password']   = $options['password'] ?? '';
+		$options['database']   = $options['database'] ?? '';
+		$options['select']     = isset($options['select']) ? (bool) $options['select'] : true;
+		$options['port']       = isset($options['port']) ? (int) $options['port'] : null;
+		$options['socket']     = $options['socket'] ?? null;
+		$options['utf8mb4']    = isset($options['utf8mb4']) ? (bool) $options['utf8mb4'] : false;
+		$options['sqlModes']   = isset($options['sqlModes']) ? (array) $options['sqlModes'] : $sqlModes;
+		$options['persistent'] = isset($options['persistent']) ? $options['persistent'] : false;
 
 		// Finalize initialisation.
 		parent::__construct($options);
@@ -211,9 +212,26 @@ class MysqliDriver extends DatabaseDriver implements UTF8MB4SupportInterface
 
 		$this->connection = mysqli_init();
 
+		// Persistent connections.
+		if ($this->options['persistent'] === true)
+		{
+			// If host in null or empty, a socket connection is in use, we need to use p:localhost in that case.
+			if (empty($this->options['host']))
+			{
+				$this->options['host'] = 'localhost';
+			}
+
+			$host = 'p:' . $this->options['host'];
+		}
+
 		// Attempt to connect to the server, use error suppression to silence warnings and allow us to throw an Exception separately.
 		$connected = @$this->connection->real_connect(
-			$this->options['host'], $this->options['user'], $this->options['password'], null, $this->options['port'], $this->options['socket']
+			$host,
+			$this->options['user'],
+			$this->options['password'],
+			null,
+			$this->options['port'],
+			$this->options['socket']
 		);
 
 		if (!$connected)
