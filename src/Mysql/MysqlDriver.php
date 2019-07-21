@@ -178,6 +178,12 @@ class MysqlDriver extends PdoDriver implements UTF8MB4SupportInterface
 			}
 		}
 
+		// Specify the wait timeout.
+		if ($this->options['timeout'] !== null)
+		{
+			$this->connection->query('SET @@SESSION.wait_timeout = ' . $this->options['timeout'] . ';');
+		}
+
 		// If needed, set the sql modes.
 		if ($this->options['sqlModes'] !== [])
 		{

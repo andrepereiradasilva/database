@@ -77,6 +77,7 @@ abstract class PdoDriver extends DatabaseDriver
 		$options['user']          = $options['user'] ?? '';
 		$options['port']          = isset($options['port']) ? (int) $options['port'] : null;
 		$options['password']      = $options['password'] ?? '';
+		$options['timeout']       = isset($options['timeout']) ? (int) $options['timeout'] : null;
 		$options['driverOptions'] = $options['driverOptions'] ?? [];
 
 		// Finalize initialisation
@@ -286,6 +287,12 @@ abstract class PdoDriver extends DatabaseDriver
 
 		// Create the connection string:
 		$connectionString = str_replace($replace, $with, $format);
+
+		// Specify the connection timeout.
+		if ($this->options['timeout'] !== null)
+		{
+			$this->options['driverOptions'][\PDO::ATTR_TIMEOUT] = $this->options['timeout'];
+		}
 
 		try
 		{
