@@ -124,6 +124,7 @@ class MysqliDriver extends DatabaseDriver implements UTF8MB4SupportInterface
 		$options['socket']   = $options['socket'] ?? null;
 		$options['utf8mb4']  = isset($options['utf8mb4']) ? (bool) $options['utf8mb4'] : false;
 		$options['sqlModes'] = isset($options['sqlModes']) ? (array) $options['sqlModes'] : $sqlModes;
+		$options['timeout']  = isset($options['timeout']) ? (int) $options['timeout'] : null;
 
 		// Finalize initialisation.
 		parent::__construct($options);
@@ -211,6 +212,12 @@ class MysqliDriver extends DatabaseDriver implements UTF8MB4SupportInterface
 
 		$this->connection = mysqli_init();
 
+		// Specify the connection timeout.
+		if ($this->options['timeout'] !== null)
+		{
+			$this->connection->options(MYSQLI_OPT_CONNECT_TIMEOUT, $this->options['timeout']);
+		}
+
 		// Attempt to connect to the server, use error suppression to silence warnings and allow us to throw an Exception separately.
 		$connected = @$this->connection->real_connect(
 			$this->options['host'], $this->options['user'], $this->options['password'], null, $this->options['port'], $this->options['socket']
@@ -222,6 +229,12 @@ class MysqliDriver extends DatabaseDriver implements UTF8MB4SupportInterface
 				'Could not connect to database: ' . $this->connection->connect_error,
 				$this->connection->connect_errno
 			);
+		}
+
+		// Specify the wait timeout.
+		if ($this->options['timeout'] !== null)
+		{
+			$this->connection->query('SET @@SESSION.wait_timeout = ' . $this->options['timeout'] . ';');
 		}
 
 		// If needed, set the sql modes.
