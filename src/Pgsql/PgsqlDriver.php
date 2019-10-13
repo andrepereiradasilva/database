@@ -134,6 +134,33 @@ class PgsqlDriver extends PdoDriver
 	}
 
 	/**
+	 * Method to get the current database connection INET properties (tcp/socket, address and port).
+	 *
+	 * @return  array  The current database connection INET properties.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function getConnectionInetProperties(): array
+	{
+		$inetProperties = $this->setQuery('SELECT inet_server_addr() AS addr, :HOST AS host, inet_server_port() AS port')->loadObject();
+
+		if ($inetProperties->port === null)
+		{
+			return [
+				'type' => 'socket',
+				'addr' => null,
+				'port' => null,
+			];
+		}
+
+		return [
+			'type' => 'tcp',
+			'addr' => $inetProperties->addr,
+			'port' => $inetProperties->port,
+		];
+	}
+
+	/**
 	 * Method to get the database encryption details (cipher and protocol) in use.
 	 *
 	 * @return  string  The database encryption details.
